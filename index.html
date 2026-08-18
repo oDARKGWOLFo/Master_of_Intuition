@@ -322,10 +322,10 @@
         const cardColor = isRed ? '#ff4d4d' : '#000000'; // КРАСИМ ЗНАЧКИ В КРАСНЫЙ ИЛИ ЧЕРНЫЙ ЦВЕТ
 
         if (cardElement) {
-            cardElement.innerHTML = `
+cardElement.innerHTML = `
             <div class="card-front-content" style="color: ${cardColor}">
                 <div style="font-size: 55px; margin-top: -5px;">${secretCard.rank}</div>
-                <div style="display: inline-block; transform: scaleY(-1); margin-top: 10px;">${secretCard.suit}</div>
+                <div style="display: inline-block; transform: rotate(180deg); margin-top: 10px;">${secretCard.suit}</div>
             </div>
         `;
             cardElement.classList.add('flipped'); // КРУТИМ КАРТУ
