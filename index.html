@@ -252,7 +252,7 @@
         </div>
 
         <!-- КНОПКА ДЛЯ ПОДЗАРЯДКИ ЭНЕРГИИ ЧЕРЕЗ ВИДЕО (ТОЖЕ СКРЫТА, ПОКА ЕСТЬ ПОПЫТКИ) -->
-        <button id="video-button" class="video-btn hidden" onclick="watchVideoAd()">🎬 Посмотреть видео (+3 Энергии)</button>
+        <button id="video-button">🎬 Посмотреть рекламу (+3 Энергии)</button>
     </div>
 
     <!-- ПОДКЛЮЧАЕМ СИСТЕМЫ ИГРЫ ТЕЛЕГРАМА И РЕКЛАМЫ (ВАШИ СТАРЫЕ ССЫЛКИ, КОТОРЫЕ МЫ НЕ ТРОГАЕМ) -->
@@ -455,7 +455,7 @@
                     document.getElementById('instruction-title').innerText = "❌ Видео не досмотрено";
                     setTimeout(() => {
                         if (videoBtn) videoBtn.disabled = false;
-                        document.getElementById('instruction-title').innerText = "Энергия закончилась. Посмотрите видео!";
+                        document.getElementById('instruction-title').innerText = "Энергия закончилась. Посмотрите рекламу!";
                     }, 3000);
                 });
         } else {
