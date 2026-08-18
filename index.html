@@ -100,7 +100,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transform: rotateY(180deg) rotate(180deg);
+            transform: rotateY(180deg);
         }
 
         .magic-ball {
@@ -324,8 +324,8 @@
         if (cardElement) {
             cardElement.innerHTML = `
                 <div class="card-front-content" style="color: ${cardColor}">
-                    <div>${secretCard.suit}</div>
-                    <div style="font-size: 55px; margin-top: -5px;">${secretCard.rank}</div>
+                    <div style="transform: scaleY(-1); display: inline-block;">${secretCard.suit}</div>
+<div style="font-size: 55px; margin-top: -5px;">${secretCard.rank}</div>
                 </div>
             `;
             cardElement.classList.add('flipped'); // КРУТИМ КАРТУ
