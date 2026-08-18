@@ -543,6 +543,26 @@ function resetToFirstScreen() {
 
     // ВКЛЮЧАЕМ ИГРУ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
     initGameEnergy();
+    function resetToFirstScreen() {
+    isAnimating = false;
+    selectedRank = null;
+    
+    const cardElement = document.getElementById('main-game-card');
+    if (cardElement) {
+        cardElement.classList.remove('flipped');
+    }
+    
+    setTimeout(() => {
+        if (cardElement) {
+            cardElement.innerHTML = `<div class="magic-ball" id="card-icon">🔮</div>`;
+        }
+        if (energy > 0) {
+            document.getElementById('rank-screen').classList.remove('hidden');
+            document.getElementById('instruction-title').innerText = "Какое достоинство у карты?";
+        }
+        generateSecretCard();
+    }, 300); // Даем карте 300 миллисекунд, чтобы красиво повернуться обратно рубашкой к игроку, и только потом сбрасываем контент
+    }
     generateSecretCard();
 </script>
 </body>
