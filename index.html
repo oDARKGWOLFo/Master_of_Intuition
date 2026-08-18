@@ -322,12 +322,12 @@
         const cardColor = isRed ? '#ff4d4d' : '#000000'; // КРАСИМ ЗНАЧКИ В КРАСНЫЙ ИЛИ ЧЕРНЫЙ ЦВЕТ
 
         if (cardElement) {
-cardElement.innerHTML = `
-            <div class="card-front-content" style="color: ${cardColor}">
-                <div style="font-size: 55px; margin-top: -5px;">${secretCard.rank}</div>
-                <div style="display: inline-block; transform: rotate(180deg); margin-top: 10px;">${secretCard.suit}</div>
-            </div>
-        `;
+            cardElement.innerHTML = `
+                <div class="card-front-content" style="color: ${cardColor}">
+                    <div>${secretCard.suit}</div>
+                    <div style="font-size: 55px; margin-top: -5px;">${secretCard.rank}</div>
+                </div>
+            `;
             cardElement.classList.add('flipped'); // КРУТИМ КАРТУ
         }
 
@@ -347,156 +347,97 @@ cardElement.innerHTML = `
     }
 
     // ТУТ МЫ ЧИТАЕМ ЭНЕРГИЮ ИЗ ТЕЛЕФОНА, ЧТОБЫ ОНА НЕ ИСЧЕЗАЛА ПРИ ОБНОВЛЕНИИ ЭКРАНА
-// ==========================================
-// БЛОК ОФЛАЙН-ТАЙМЕРА И ВОССТАНОВЛЕНИЯ ЭНЕРГИИ
-// ==========================================
-
-function initGameEnergy() {
-    let savedEnergy = localStorage.getItem('local_energy');
-    if (savedEnergy !== null) {
-        energy = parseInt(savedEnergy, 10);
-        if (isNaN(energy)) energy = 3;
-    } else {
-        energy = 3;
-    }
-
-    document.getElementById('energy-display').innerText = `ЭНЕРГИЯ: ${energy}/3`;
-
-    if (energy < 3) {
-        let savedCooldown = localStorage.getItem('local_cooldown');
-        let lastTimeStamp = localStorage.getItem('last_time_stamp');
-        
-        let currentCooldown = savedCooldown ? parseInt(savedCooldown, 10) : 3600;
-        
-        if (lastTimeStamp) {
-            let timePassedSeconds = Math.floor((Date.now() - parseInt(lastTimeStamp, 10)) / 1000);
-            
-            if (timePassedSeconds > 0) {
-                currentCooldown -= timePassedSeconds;
-                
-                while (currentCooldown <= 0 && energy < 3) {
-                    energy += 1;
-                    currentCooldown += 3600;
-                }
-                
-                if (energy >= 3) {
-                    energy = 3;
-                    currentCooldown = 3600;
-                }
-                
-                updateLocalEnergy(energy);
-            }
+    function initGameEnergy() {
+        let savedEnergy = localStorage.getItem('local_energy');
+        if (savedEnergy !== null) {
+            energy = parseInt(savedEnergy, 10);
+            if (isNaN(energy)) energy = 3;
+        } else {
+            energy = 3;
         }
-        
-        energyCooldown = currentCooldown;
-        localStorage.setItem('local_cooldown', energyCooldown.toString());
-        localStorage.setItem('last_time_stamp', Date.now().toString());
-        
-        startEnergyTimer();
-    } else {
-        document.getElementById('energy-timer').innerText = "⏳ Энергия полная";
-        
-        // ВОЗВРАЩАЕМ УДАЛЕННУЮ СТРОКУ (Скрываем кнопку видео, если энергия полная)
-        let videoBtn = document.getElementById('video-button');
-        if (videoBtn) videoBtn.classList.add('hidden');
-    }
-}
 
-function startEnergyTimer() {
-    if (timerInterval) return;
-    
-    timerInterval = setInterval(() => {
-        if (energy >= 3) {
-            clearInterval(timerInterval);
-            timerInterval = null;
+        document.getElementById('energy-display').innerText = `ЭНЕРГИЯ: ${energy}/3`;
+
+        if (energy < 3) {
+            startEnergyTimer();
+            let savedTime = localStorage.getItem('local_cooldown');
+            if (savedTime) energyCooldown = parseInt(savedTime, 10) || 3600;
+        } else {
             document.getElementById('energy-timer').innerText = "⏳ Энергия полная";
-            return;
+            document.getElementById('video-button').classList.add('hidden');
         }
+    }
+
+    function updateLocalEnergy(value) {
+        energy = value;
+        localStorage.setItem('local_energy', energy.toString()); // СОХРАНЯЕМ В БРАУЗЕР НА СМАРТФОНЕ
+        document.getElementById('energy-display').innerText = `ЭНЕРГИЯ: ${energy}/3`;
         
-        energyCooldown--;
-        
-        localStorage.setItem('local_cooldown', energyCooldown.toString());
-        localStorage.setItem('last_time_stamp', Date.now().toString());
-        
-        if (energyCooldown <= 0) {
-            updateLocalEnergy(energy + 1);
-            energyCooldown = 3600;
-            localStorage.setItem('local_cooldown', energyCooldown.toString());
-            
-            if (energy >= 3) {
-                let videoBtn = document.getElementById('video-button');
-                if (videoBtn) videoBtn.classList.add('hidden');
+        if (window.Telegram && window.Telegram.WebApp.CloudStorage) {
+            window.Telegram.WebApp.CloudStorage.setItem('player_energy', energy.toString()); // И В ТЕЛЕГРАМ СИНХРОНИЗИРУЕМ
+        }
+    }
+
+    function checkEnergyStatus() {
+        if (energy < 3) {
+            startEnergyTimer();
+        }
+        if (energy <= 0) {
+            document.getElementById('instruction-title').innerText = "Энергия закончилась. Посмотрите видео!";
+            document.getElementById('video-button').classList.remove('hidden');
+            document.getElementById('video-button').disabled = false;
+        }
+    }
+
+    function resetToFirstScreen() {
+        isAnimating = false;
+        selectedRank = null;
+
+        const cardElement = document.getElementById('main-game-card');
+        if (cardElement) {
+            cardElement.classList.remove('flipped');
+            cardElement.innerHTML = `<div class="magic-ball" id="card-icon">🔮</div>`;
+        }
+
+        if (energy > 0) {
+            document.getElementById('rank-screen').classList.remove('hidden');
+            document.getElementById('instruction-title').innerText = "Какое достоинство у карты?";
+        }
+        generateSecretCard();
+    }
+
+    // ТАЙМЕР: ОН ТИКАЕТ КАЖДУЮ СЕКУНДУ САМ ПО СЕБЕ И ДОБАВЛЯЕТ ЭНЕРГИЮ
+    function startEnergyTimer() {
+        if (timerInterval) return;
+
+        timerInterval = setInterval(() => {
+            if (energy >= maxEnergy) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                document.getElementById('energy-timer').innerText = "⏳ Энергия полная";
+                return;
             }
-        }
-        
-        let minutes = Math.floor(energyCooldown / 60);
-        let seconds = energyCooldown % 60;
-        if (seconds < 10) seconds = "0" + seconds;
-        
-        document.getElementById('energy-timer').innerText = `⏳ До +1: ${minutes}:${seconds}`;
-    }, 1000);
-}
 
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-        initGameEnergy();
-    }
-});
+            energyCooldown--;
+            localStorage.setItem('local_cooldown', energyCooldown.toString());
 
-// ВОЗВРАЩАЕМ ФУНКЦИЮ ИЗ СТРОКИ 371 (Сохранение энергии и обновление интерфейса)
-function updateLocalEnergy(value) {
-    energy = value;
-    localStorage.setItem('local_energy', energy.toString());
-    document.getElementById('energy-display').innerText = `ЭНЕРГИЯ: ${energy}/3`;
-    
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        window.Telegram.WebApp.CloudStorage.setItem('player_energy', energy.toString(), () => {});
-    }
-}
+            if (energyCooldown <= 0) {
+                updateLocalEnergy(energy + 1); // +1 ЭНЕРГИЯ ИГРОКУ САМА ПО СЕБЕ!
+                energyCooldown = 3600; // СБРОС СНОВА НА СЛЕДУЮЩИЙ ЧАС
+                
+                if (energy >= maxEnergy) {
+                    document.getElementById('video-button').classList.add('hidden');
+                }
+            }
 
-// ВОЗВРАЩАЕМ ФУНКЦИЮ ИЗ СТРОКИ 381 (Проверка статуса энергии при ошибках)
-// Позволяет кнопкам работать и разблокирует экран
-function checkEnergyStatus() {
-    if (energy < 3) {
-        startEnergyTimer();
-    }
-    if (energy <= 0) {
-        document.getElementById('instruction-title').innerText = "Энергия закончилась. Посмотрите видео!";
-        document.getElementById('rank-screen').classList.add('hidden');
-        document.getElementById('suit-screen').classList.add('hidden');
-        let videoBtn = document.getElementById('video-button');
-        if (videoBtn) {
-            videoBtn.classList.remove('hidden');
-            videoBtn.disabled = false;
-        }
-    }
-}
+            let minutes = Math.floor(energyCooldown / 60);
+            let seconds = energyCooldown % 60;
+            if (seconds < 10) seconds = "0" + seconds;
 
-// ВОЗВРАЩАЕМ ФУНКЦИЮ ИЗ СТРОКИ 392 (Сброс игры к первому экрану выбора карты)
-function resetToFirstScreen() {
-    isAnimating = false;
-    selectedRank = null;
-    
-    const cardElement = document.getElementById('main-game-card');
-    if (cardElement) {
-        cardElement.classList.remove('flipped');
-        cardElement.innerHTML = `<div class="magic-ball" id="card-icon">🔮</div>`;
+            document.getElementById('energy-timer').innerText = `⏳ до +1: ${minutes}:${seconds}`;
+        }, 1000);
     }
-    
-    if (energy > 0) {
-        document.getElementById('rank-screen').classList.remove('hidden');
-        document.getElementById('instruction-title').innerText = "Какое достоинство у карты?";
-    }
-    generateSecretCard();
-}
 
-// ==========================================
-// КОНЕЦ БЛОКА ОФЛАЙН-ТАЙМЕРА
-// ==========================================
     // СТРОГИЙ КОД РЕКЛАМЫ ADSGRAM (ЕСЛИ ИГРОК ЗАКРЫЛ — ЭНЕРГИЮ НЕ ДАЕМ, МОДЕРАЦИЯ ОДОБРИТ!)
     function watchVideoAd() {
         const videoBtn = document.getElementById('video-button');
@@ -543,27 +484,7 @@ function resetToFirstScreen() {
 
     // ВКЛЮЧАЕМ ИГРУ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
     initGameEnergy();
-    function resetToFirstScreen() {
-    isAnimating = false;
-    selectedRank = null;
-    
-    const cardElement = document.getElementById('main-game-card');
-    if (cardElement) {
-        cardElement.classList.remove('flipped');
-    }
-    
-    setTimeout(() => {
-        if (cardElement) {
-            cardElement.innerHTML = `<div class="magic-ball" id="card-icon">🔮</div>`;
-        }
-        if (energy > 0) {
-            document.getElementById('rank-screen').classList.remove('hidden');
-            document.getElementById('instruction-title').innerText = "Какое достоинство у карты?";
-        }
-        generateSecretCard();
-    }, 300); // Даем карте 300 миллисекунд, чтобы красиво повернуться обратно рубашкой к игроку, и только потом сбрасываем контент
-    }
     generateSecretCard();
 </script>
 </body>
-  </html>
+            </html>
