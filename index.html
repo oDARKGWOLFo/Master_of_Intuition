@@ -323,11 +323,11 @@
 
         if (cardElement) {
             cardElement.innerHTML = `
-                <div class="card-front-content" style="color: ${cardColor}">
-                    <div style="transform: scaleY(-1); display: inline-block;">${secretCard.suit}</div>
-<div style="font-size: 55px; margin-top: -5px;">${secretCard.rank}</div>
-                </div>
-            `;
+            <div class="card-front-content" style="color: ${cardColor}">
+                <div style="display: inline-block; margin-bottom: 5px;">${secretCard.suit}</div>
+                <div style="font-size: 55px; margin-top: -5px;">${secretCard.rank}</div>
+            </div>
+        `;
             cardElement.classList.add('flipped'); // КРУТИМ КАРТУ
         }
 
