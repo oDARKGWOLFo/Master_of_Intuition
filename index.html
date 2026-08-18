@@ -485,6 +485,67 @@
     // ВКЛЮЧАЕМ ИГРУ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
     initGameEnergy();
     generateSecretCard();
+    // ==========================================
+// БЕЗОПАСНЫЙ ОФЛАЙН-КОРРЕКТОР ТАЙМЕРА
+// ==========================================
+
+// Каждую секунду запоминаем точное время на часах телефона
+setInterval(() => {
+    localStorage.setItem('game_last_timestamp', Date.now().toString());
+}, 1000);
+
+// Как только игрок сворачивает или разворачивает Telegram
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        // 1. Узнаем, сколько времени прошло в реальном мире
+        let lastTime = localStorage.getItem('game_last_timestamp');
+        if (!lastTime) return;
+
+        let secondsPassed = Math.floor((Date.now() - parseInt(lastTime, 10)) / 1000);
+
+        // 2. Если прошло больше 2 секунд (был выход из игры)
+        if (secondsPassed > 2 && energy < 3) {
+            
+            // Вычитаем реальные секунды из вашего кулдауна
+            energyCooldown -= secondsPassed;
+
+            // Если прошло много часов и энергия должна восстановиться несколько раз
+            while (energyCooldown <= 0 && energy < 3) {
+                energy += 1;
+                energyCooldown += 3600; // Добавляем час на следующую энергию
+            }
+
+            // Если за время офлайна энергия полностью восстановилась до 3
+            if (energy >= 3) {
+                energy = 3;
+                energyCooldown = 3600;
+                
+                // Находим текст таймера и пишем, что она полная
+                let timerText = document.getElementById('energy-timer');
+                if (timerText) timerText.innerText = "⏳ Энергия полная";
+                
+                let videoBtn = document.getElementById('video-button');
+                if (videoBtn) videoBtn.classList.add('hidden');
+            }
+
+            // Обновляем текст энергии на экране (строка взята из вашего оригинального кода)
+            let energyDisplay = document.getElementById('energy-display');
+            if (energyDisplay) {
+                energyDisplay.innerText = `ЭНЕРГИЯ: ${energy}/3`;
+            }
+
+            // Сохраняем новые значения в память устройства
+            localStorage.setItem('local_energy', energy.toString());
+            localStorage.setItem('local_cooldown', energyCooldown.toString());
+            
+            // Отправляем данные в облако Telegram (строка из вашего оригинального кода)
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
+                window.Telegram.WebApp.CloudStorage.setItem('player_energy', energy.toString(), () => {});
+            }
+        }
+    }
+});
+// ==========================================
 </script>
 </body>
             </html>
