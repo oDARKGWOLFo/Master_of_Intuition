@@ -324,8 +324,8 @@
         if (cardElement) {
             cardElement.innerHTML = `
                 <div class="card-front-content" style="color: ${cardColor}">
-                    <div>${secretCard.suit}</div>
-                    <div style="font-size: 55px; margin-top: -5px;">${secretCard.rank}</div>
+                    <div>${secretCard.rank}</div>
+                    <div style="font-size: 55px; margin-top: -5px;">${secretCard.suit}</div>
                 </div>
             `;
             cardElement.classList.add('flipped'); // КРУТИМ КАРТУ
