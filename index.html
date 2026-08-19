@@ -451,13 +451,14 @@
                     rewardUser(); // УСПЕХ: НАЧИСЛЯЕМ ПОЛНУЮ ЭНЕРГИЮ
                 })
                 .catch((error) => {
-                    console.error("Adsgram Error:", error);
-                    document.getElementById('instruction-title').innerText = "❌ Видео не досмотрено";
-                    setTimeout(() => {
-                        if (videoBtn) videoBtn.disabled = false;
-                        document.getElementById('instruction-title').innerText = "Энергия закончилась. Посмотрите видео!";
-                    }, 3000);
-                });
+            console.error("Adsgram Error: ", error);
+            
+            // 1. СРАЗУ возвращаем кнопке рабочее состояние, чтобы её можно было нажать еще раз
+            if (videoBtn) videoBtn.disabled = false;
+            
+            // 2. Пишем красивый текст ошибки на экране вместо бесконечной загрузки
+            document.getElementById('instruction-title').innerText = "❌ Видео не загружено. Попробуйте позже!";
+        });
     } else {
             // ТЕСТОВЫЙ ИНСТРУМЕНТ (САМ ДАЕТ НАГРАДУ ЗА 2 СЕКУНДЫ, ПОКА СТОИТ ТЕСТОВЫЙ ID БЛОКА)
            // setTimeout(rewardUser, 2000);
