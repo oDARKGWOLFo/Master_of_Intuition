@@ -452,13 +452,8 @@
                 rewardUser(); // УСПЕХ: НАЧИСЛЯЕМ ПОЛНУЮ ЭНЕРГИЮ
             })
             .catch((error) => {
-                console.error("Adsgram Error: ", error);
-                
-                // Вместо вывода JSON-кода пишем понятный текст для игрока
-                document.getElementById('instruction-title').innerText = "Реклама временно недоступна. Попробуйте через пару минут.";
-                
-                if (videoBtn) videoBtn.disabled = false;
-            });
+// Если Adsgram вернул ошибку (нет объявления или недействительный домен)
+console.error("Adsgram Error: ", error);
                 
                 // Извлекаем текст ошибки, если это объект
                 let errorMsg = error && error.message ? error.message : JSON.stringify(error);
