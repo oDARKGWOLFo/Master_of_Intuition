@@ -443,7 +443,7 @@
         const videoBtn = document.getElementById('video-button');
         if (videoBtn) videoBtn.disabled = true;
         
-        document.getElementById('instruction-title').innerText = "Загрузка рекламы...";
+        document.getElementById('instruction-title').innerText = "Энергия закончилась. Посмотрите видео!";
         
         if (AdController && AdController.blockId === '43482') {
             AdController.show()
@@ -455,7 +455,7 @@
                     document.getElementById('instruction-title').innerText = "❌ Видео не досмотрено";
                     setTimeout(() => {
                         if (videoBtn) videoBtn.disabled = false;
-                        document.getElementById('instruction-title').innerText = "Энергия закончилась. Посмотрите рекламу!";
+                        document.getElementById('instruction-title').innerText = "Энергия закончилась. Посмотрите видео!";
                     }, 3000);
                 });
     } else {
