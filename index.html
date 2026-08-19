@@ -485,6 +485,71 @@
     // ВКЛЮЧАЕМ ИГРУ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
     initGameEnergy();
     generateSecretCard();
+    // ==========================================
+// НАДЕЖНЫЙ ОФЛАЙН-КОРРЕКТОР ТАЙМЕРА (ФИКС)
+// ==========================================
+
+// 1. Постоянно обновляем метку времени, пока таймер тикает в игре
+setInterval(() => {
+    if (typeof energyCooldown !== 'undefined') {
+        localStorage.setItem('game_last_timestamp', Date.now().toString());
+    }
+}, 1000);
+
+// 2. Функция, которая мгновенно докрутит время при холодном старте или развертывании
+function applyOfflineProgress() {
+    if (typeof energy === 'undefined' || typeof energyCooldown === 'undefined') return;
+
+    let lastTime = localStorage.getItem('game_last_timestamp');
+    if (!lastTime) return;
+
+    // Сколько реальных секунд прошло с последнего сохранения
+    let secondsPassed = Math.floor((Date.now() - parseInt(lastTime, 10)) / 1000);
+
+    if (secondsPassed > 2 && energy < 3) {
+        energyCooldown -= secondsPassed;
+
+        // Начисляем энергию, если прошло много времени
+        while (energyCooldown <= 0 && energy < 3) {
+            energy += 1;
+            energyCooldown += 3600; 
+        }
+
+        if (energy >= 3) {
+            energy = 3;
+            energyCooldown = 3600;
+            let timerText = document.getElementById('energy-timer');
+            if (timerText) timerText.innerText = "⏳ Энергия полная";
+            let videoBtn = document.getElementById('video-button');
+            if (videoBtn) videoBtn.classList.add('hidden');
+        }
+
+        // Обновляем визуал на экране
+        let energyDisplay = document.getElementById('energy-display');
+        if (energyDisplay) {
+            energyDisplay.innerText = `ЭНЕРГИЯ: ${energy}/3`;
+        }
+
+        // Сохраняем результат
+        localStorage.setItem('local_energy', energy.toString());
+        localStorage.setItem('local_cooldown', energyCooldown.toString());
+        
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
+            window.Telegram.WebApp.CloudStorage.setItem('player_energy', energy.toString(), () => {});
+        }
+    }
+}
+
+// Запускаем проверку при открытии игры
+applyOfflineProgress();
+
+// Запускаем проверку, если игру просто свернули/развернули
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        applyOfflineProgress();
+    }
+});
+// ==========================================
 </script>
 </body>
                 </html>
