@@ -440,28 +440,35 @@
 
     // СТРОГИЙ КОД РЕКЛАМЫ ADSGRAM (ЕСЛИ ИГРОК ЗАКРЫЛ — ЭНЕРГИЮ НЕ ДАЕМ, МОДЕРАЦИЯ ОДОБРИТ!)
     function watchVideoAd() {
-        const videoBtn = document.getElementById('video-button');
-        if (videoBtn) videoBtn.disabled = true;
-        
-        document.getElementById('instruction-title').innerText = "Загрузка рекламы...";
-        
-        if (AdController) {//&& AdController.blockId === '43566') {
-            AdController.show()
-                .then(() => {
-                    rewardUser(); // УСПЕХ: НАЧИСЛЯЕМ ПОЛНУЮ ЭНЕРГИЮ
-                })
-                .catch((error) => {
-                    console.error("Adsgram Error:", error);
-                    document.getElementById('instruction-title').innerText = "❌ Реклама не досмотрена";
-                    setTimeout(() => {
-                        if (videoBtn) videoBtn.disabled = false;
-                        document.getElementById('instruction-title').innerText = "Энергия закончилась. Посмотрите рекламу!";
-                    }, 3000);
-                });
-        } else {
-            // ТЕСТОВЫЙ ИНСТРУМЕНТ (САМ ДАЕТ НАГРАДУ ЗА 2 СЕКУНДЫ, ПОКА СТОИТ ТЕСТОВЫЙ ID БЛОКА)
-            //setTimeout(rewardUser, 2000);
-        }
+    const videoBtn = document.getElementById('video-button');
+    if (videoBtn) videoBtn.disabled = true;
+
+    document.getElementById('instruction-title').innerText = "Загрузка рекламы...";
+
+    // Проверяем, подключился ли скрипт Adsgram вообще
+    if (typeof AdController !== 'undefined' && AdController) {
+        AdController.show()
+            .then(() => {
+                rewardUser(); // УСПЕХ: НАЧИСЛЯЕМ ПОЛНУЮ ЭНЕРГИЮ
+            })
+            .catch((error) => {
+                // Если Adsgram вернул ошибку (нет рекламы или неверный домен)
+                console.error("Adsgram Error: ", error);
+                
+                // Извлекаем текст ошибки, если это объект
+                let errorMsg = error && error.message ? error.message : JSON.stringify(error);
+                
+                // Выводим РЕАЛЬНУЮ ошибку вместо бесконечной загрузки
+                document.getElementById('instruction-title').innerText = "Ошибка Adsgram: " + errorMsg;
+                
+                if (videoBtn) videoBtn.disabled = false;
+            });
+    } else {
+        // Если сам скрипт Adsgram не загрузился (например, заблокирован провайдером)
+        document.getElementById('instruction-title').innerText = "Ошибка: Adsgram не инициализирован!";
+        if (videoBtn) videoBtn.disabled = false;
+    }
+    }
     }
 
     function rewardUser() {
