@@ -452,8 +452,13 @@
                 rewardUser(); // УСПЕХ: НАЧИСЛЯЕМ ПОЛНУЮ ЭНЕРГИЮ
             })
             .catch((error) => {
-                // Если Adsgram вернул ошибку (нет рекламы или неверный домен)
                 console.error("Adsgram Error: ", error);
+                
+                // Вместо вывода JSON-кода пишем понятный текст для игрока
+                document.getElementById('instruction-title').innerText = "Реклама временно недоступна. Попробуйте через пару минут.";
+                
+                if (videoBtn) videoBtn.disabled = false;
+            });
                 
                 // Извлекаем текст ошибки, если это объект
                 let errorMsg = error && error.message ? error.message : JSON.stringify(error);
